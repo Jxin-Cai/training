@@ -1,36 +1,72 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useCategoryStore } from '@/stores/category'
 import { storeToRefs } from 'pinia'
-import type { CreateCategoryRequest, UpdateCategoryRequest } from '@/types'
+import type { CreateCategoryRequest, UpdateCategoryRequest, CategoryTreeNode } from '@/types'
 
 const categoryStore = useCategoryStore()
-const { categories, loading } = storeToRefs(categoryStore)
+const { categoryTree, flatCategories, loading } = storeToRefs(categoryStore)
 
 const showModal = ref(false)
 const editingId = ref<string | null>(null)
-const formData = ref<CreateCategoryRequest>({ name: '', description: '' })
+const formData = ref<CreateCategoryRequest>({ name: '', description: '', parentId: null })
 
 onMounted(() => {
   categoryStore.fetchCategories()
 })
 
-function openCreateModal() {
+interface FlatCategoryItem {
+  id: string
+  name: string
+  description: string
+  level: number
+  parentId: string | null
+  hasChildren: boolean
+}
+
+const flattenedTree = computed((): FlatCategoryItem[] => {
+  const result: FlatCategoryItem[] = []
+  
+  function traverse(nodes: CategoryTreeNode[]) {
+    for (const node of nodes) {
+      result.push({
+        id: node.id,
+        name: node.name,
+        description: node.description,
+        level: node.level,
+        parentId: node.parentId,
+        hasChildren: node.children.length > 0
+      })
+      if (node.children.length > 0) {
+        traverse(node.children)
+      }
+    }
+  }
+  
+  traverse(categoryTree.value)
+  return result
+})
+
+function openCreateModal(parentId: string | null = null) {
   editingId.value = null
-  formData.value = { name: '', description: '' }
+  formData.value = { name: '', description: '', parentId }
   showModal.value = true
 }
 
-function openEditModal(category: { id: string; name: string; description: string }) {
+function openEditModal(category: FlatCategoryItem) {
   editingId.value = category.id
-  formData.value = { name: category.name, description: category.description }
+  formData.value = { 
+    name: category.name, 
+    description: category.description,
+    parentId: category.parentId
+  }
   showModal.value = true
 }
 
 function closeModal() {
   showModal.value = false
   editingId.value = null
-  formData.value = { name: '', description: '' }
+  formData.value = { name: '', description: '', parentId: null }
 }
 
 async function handleSubmit() {
@@ -48,29 +84,38 @@ async function handleSubmit() {
 
 async function handleDelete(id: string) {
   if (confirm('确定要删除这个分类吗？')) {
-    await categoryStore.deleteCategory(id)
+    try {
+      await categoryStore.deleteCategory(id)
+    } catch (e) {
+      // Error handled in store
+    }
   }
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
+const availableParents = computed(() => {
+  if (!editingId.value) {
+    return flatCategories.value
+  }
+  
+  const editing = flatCategories.value.find(c => c.id === editingId.value)
+  if (!editing) return flatCategories.value
+  
+  return flatCategories.value.filter(c => 
+    c.id !== editingId.value && !c.path.startsWith(editing.path + '/')
+  )
+})
 </script>
 
 <template>
   <div class="categories-view">
     <div class="page-header flex justify-between items-center mb-6">
       <h1>分类管理</h1>
-      <button class="btn btn-primary" @click="openCreateModal">
+      <button class="btn btn-primary" @click="openCreateModal(null)">
         <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"/>
           <line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
-        新建分类
+        新建顶级分类
       </button>
     </div>
 
@@ -78,22 +123,45 @@ function formatDate(dateStr: string): string {
       <p class="text-muted">加载中...</p>
     </div>
 
-    <div v-else-if="categories.length === 0" class="empty-state">
+    <div v-else-if="flattenedTree.length === 0" class="empty-state">
       <p class="text-muted">暂无分类，创建第一个分类吧！</p>
     </div>
 
-    <div v-else class="categories-grid">
-      <div v-for="category in categories" :key="category.id" class="category-card card">
-        <div class="card-header flex justify-between items-center">
-          <h3>{{ category.name }}</h3>
-          <div class="card-actions flex gap-2">
-            <button class="action-btn" @click="openEditModal(category)" title="Edit">
+    <div v-else class="category-tree">
+      <div 
+        v-for="category in flattenedTree" 
+        :key="category.id" 
+        class="category-row"
+        :style="{ paddingLeft: `${category.level * 24 + 16}px` }"
+      >
+        <div class="category-content flex justify-between items-center">
+          <div class="category-info">
+            <span v-if="category.level > 0" class="tree-indent">└─</span>
+            <span class="category-name">{{ category.name }}</span>
+            <span v-if="category.description" class="category-desc text-muted">
+              - {{ category.description }}
+            </span>
+          </div>
+          <div class="category-actions flex gap-2">
+            <button 
+              class="btn btn-secondary btn-sm" 
+              @click="openCreateModal(category.id)"
+              title="添加子分类"
+            >
+              + 子分类
+            </button>
+            <button class="action-btn" @click="openEditModal(category)" title="编辑">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
             </button>
-            <button class="action-btn danger" @click="handleDelete(category.id)" title="Delete">
+            <button 
+              class="action-btn danger" 
+              @click="handleDelete(category.id)" 
+              title="删除"
+              :disabled="category.hasChildren"
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="3 6 5 6 21 6"/>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -101,8 +169,6 @@ function formatDate(dateStr: string): string {
             </button>
           </div>
         </div>
-        <p class="card-description text-muted">{{ category.description || '暂无描述' }}</p>
-        <p class="card-date text-muted">创建于: {{ formatDate(category.createdAt) }}</p>
       </div>
     </div>
 
@@ -110,6 +176,19 @@ function formatDate(dateStr: string): string {
       <div class="modal">
         <h2>{{ editingId ? '编辑分类' : '新建分类' }}</h2>
         <form @submit.prevent="handleSubmit">
+          <div class="form-group">
+            <label for="parentId">父分类</label>
+            <select id="parentId" v-model="formData.parentId">
+              <option :value="null">-- 顶级分类 --</option>
+              <option 
+                v-for="cat in availableParents" 
+                :key="cat.id" 
+                :value="cat.id"
+              >
+                {{ '\u3000'.repeat(cat.level) }}{{ cat.name }}
+              </option>
+            </select>
+          </div>
           <div class="form-group">
             <label for="name">名称</label>
             <input id="name" v-model="formData.name" type="text" required placeholder="分类名称" />
@@ -134,30 +213,61 @@ function formatDate(dateStr: string): string {
   height: 1.25rem;
 }
 
-.categories-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
 }
 
-.category-card {
-  cursor: default;
+.category-tree {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
 }
 
-.category-card:hover {
-  border-color: var(--color-border);
+.category-row {
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.75rem 1rem;
+  transition: background-color var(--transition-fast);
 }
 
-.card-header h3 {
-  margin: 0;
+.category-row:last-child {
+  border-bottom: none;
 }
 
-.card-actions {
+.category-row:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.category-content {
+  min-height: 2rem;
+}
+
+.category-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tree-indent {
+  color: var(--color-text-muted);
+  font-family: monospace;
+}
+
+.category-name {
+  font-weight: 500;
+}
+
+.category-desc {
+  font-size: 0.875rem;
+}
+
+.category-actions {
   opacity: 0;
   transition: opacity var(--transition-fast);
 }
 
-.category-card:hover .card-actions {
+.category-row:hover .category-actions {
   opacity: 1;
 }
 
@@ -183,18 +293,14 @@ function formatDate(dateStr: string): string {
   color: var(--color-error);
 }
 
+.action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .action-btn svg {
   width: 1rem;
   height: 1rem;
-}
-
-.card-description {
-  margin: 1rem 0 0.5rem;
-  font-size: 0.9rem;
-}
-
-.card-date {
-  font-size: 0.75rem;
 }
 
 .empty-state, .loading {
