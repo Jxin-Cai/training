@@ -1,144 +1,175 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useContentStore } from '@/stores/content'
+import { useCategoryStore } from '@/stores/category'
 import { storeToRefs } from 'pinia'
+import { contentApi } from '@/api'
+import type { Content } from '@/types'
 
+const route = useRoute()
 const contentStore = useContentStore()
-const { publishedContents, loading } = storeToRefs(contentStore)
+const categoryStore = useCategoryStore()
+const { loading } = storeToRefs(contentStore)
+const { flatCategories } = storeToRefs(categoryStore)
 
-onMounted(() => {
-  contentStore.fetchPublishedContents()
+const filteredContents = ref<Content[]>([])
+
+const currentCategoryId = computed(() => route.query.category as string | undefined)
+
+const breadcrumb = computed(() => {
+  if (!currentCategoryId.value) return []
+  return categoryStore.getCategoryPath(currentCategoryId.value)
 })
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return ''
+const currentCategoryName = computed(() => {
+  if (!currentCategoryId.value) return '全部内容'
+  const cat = flatCategories.value.find(c => c.id === currentCategoryId.value)
+  return cat?.name || '全部内容'
+})
+
+async function loadContents() {
+  if (currentCategoryId.value) {
+    const response = await contentApi.getByCategory(currentCategoryId.value)
+    filteredContents.value = response.data.filter(c => c.status === 'PUBLISHED')
+  } else {
+    const response = await contentApi.getPublished()
+    filteredContents.value = response.data
+  }
+}
+
+onMounted(async () => {
+  await categoryStore.fetchCategories()
+  await loadContents()
+})
+
+watch(currentCategoryId, () => {
+  loadContents()
+})
+
+function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('zh-CN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   })
 }
-
-function getExcerpt(html: string): string {
-  const text = html.replace(/<[^>]+>/g, '')
-  return text.length > 200 ? text.substring(0, 200) + '...' : text
-}
 </script>
 
 <template>
   <div class="home-view">
-    <div class="container">
-      <section class="hero">
-        <h1 class="hero-title">欢迎访问<span class="text-accent">内容管理系统</span></h1>
-        <p class="hero-subtitle text-muted">探索我们的最新内容</p>
-      </section>
+    <div v-if="breadcrumb.length > 0" class="breadcrumb">
+      <router-link to="/">首页</router-link>
+      <span v-for="(name, index) in breadcrumb" :key="index">
+        <span class="separator">/</span>
+        <span :class="{ current: index === breadcrumb.length - 1 }">{{ name }}</span>
+      </span>
+    </div>
 
-      <section class="content-list" v-if="!loading">
-        <div v-if="publishedContents.length === 0" class="empty-state">
-          <p class="text-muted">暂无已发布的内容</p>
-        </div>
-        <div v-else class="content-grid">
-          <RouterLink 
-            v-for="content in publishedContents" 
-            :key="content.id"
-            :to="`/content/${content.id}`"
-            class="content-card card"
-          >
-            <div class="card-header">
-              <span v-if="content.categoryName" class="category-badge">
-                {{ content.categoryName }}
-              </span>
-              <span class="publish-date text-muted">
-                {{ formatDate(content.publishedAt) }}
-              </span>
-            </div>
-            <h3 class="card-title">{{ content.title }}</h3>
-            <p class="card-excerpt text-muted">{{ getExcerpt(content.htmlContent) }}</p>
-            <span class="read-more">阅读更多</span>
-          </RouterLink>
-        </div>
-      </section>
+    <h1 class="page-title">{{ currentCategoryName }}</h1>
 
-      <div v-else class="loading">
-        <p class="text-muted">加载中...</p>
-      </div>
+    <div v-if="loading" class="loading">
+      <p class="text-muted">加载中...</p>
+    </div>
+
+    <div v-else-if="filteredContents.length === 0" class="empty-state">
+      <p class="text-muted">暂无内容</p>
+    </div>
+
+    <div v-else class="content-list">
+      <router-link 
+        v-for="content in filteredContents" 
+        :key="content.id"
+        :to="`/content/${content.id}`"
+        class="content-card"
+      >
+        <h2 class="content-title">{{ content.title }}</h2>
+        <div class="content-meta">
+          <span v-if="content.categoryName" class="category-tag">
+            {{ content.categoryName }}
+          </span>
+          <span class="publish-date">{{ formatDate(content.publishedAt || content.createdAt) }}</span>
+        </div>
+      </router-link>
     </div>
   </div>
 </template>
 
 <style scoped>
-.hero {
-  text-align: center;
-  margin-bottom: 4rem;
+.home-view {
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-.hero-title {
-  font-size: 3rem;
+.breadcrumb {
   margin-bottom: 1rem;
-}
-
-.hero-subtitle {
-  font-size: 1.25rem;
-}
-
-.content-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-}
-
-.content-card {
-  display: flex;
-  flex-direction: column;
-  text-decoration: none;
-  color: inherit;
-  transition: transform var(--transition-fast), border-color var(--transition-fast);
-}
-
-.content-card:hover {
-  transform: translateY(-4px);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.category-badge {
-  background-color: rgba(202, 138, 4, 0.2);
-  color: var(--color-accent);
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.publish-date {
   font-size: 0.875rem;
+  color: var(--color-text-muted);
 }
 
-.card-title {
-  margin-bottom: 0.75rem;
+.breadcrumb a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
   color: var(--color-text);
 }
 
-.card-excerpt {
-  flex: 1;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
+.breadcrumb .separator {
+  margin: 0 0.5rem;
 }
 
-.read-more {
-  color: var(--color-accent);
-  font-weight: 500;
+.breadcrumb .current {
+  color: var(--color-text);
+}
+
+.page-title {
+  margin-bottom: 2rem;
+}
+
+.content-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.content-card {
+  display: block;
+  padding: 1.5rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.content-card:hover {
+  border-color: var(--color-text-muted);
+  transform: translateY(-2px);
+}
+
+.content-title {
+  margin: 0 0 0.75rem;
+  color: var(--color-text);
+  font-size: 1.25rem;
+}
+
+.content-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   font-size: 0.875rem;
+  color: var(--color-text-muted);
 }
 
-.empty-state, .loading {
+.category-tag {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.loading, .empty-state {
   text-align: center;
   padding: 4rem 0;
 }
