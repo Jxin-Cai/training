@@ -5,12 +5,13 @@ import 'md-editor-v3/lib/style.css'
 import { useContentStore } from '@/stores/content'
 import { useCategoryStore } from '@/stores/category'
 import { storeToRefs } from 'pinia'
+import { imageApi } from '@/api'
 import type { CreateContentRequest, UpdateContentRequest } from '@/types'
 
 const contentStore = useContentStore()
 const categoryStore = useCategoryStore()
 const { contents, loading } = storeToRefs(contentStore)
-const { categories } = storeToRefs(categoryStore)
+const { categories, flatCategories } = storeToRefs(categoryStore)
 
 const showModal = ref(false)
 const editingId = ref<string | null>(null)
@@ -112,6 +113,21 @@ function formatDate(dateStr: string): string {
     minute: '2-digit'
   })
 }
+
+const onUploadImg = async (files: File[], callback: (urls: string[]) => void) => {
+  try {
+    const urls = await Promise.all(
+      files.map(async (file) => {
+        const response = await imageApi.upload(file)
+        return response.data.url
+      })
+    )
+    callback(urls)
+  } catch (e) {
+    console.error('Image upload failed:', e)
+    alert('图片上传失败')
+  }
+}
 </script>
 
 <template>
@@ -197,7 +213,13 @@ function formatDate(dateStr: string): string {
             <div class="form-group" style="width: 200px;">
               <label for="categoryId">分类</label>
               <select id="categoryId" v-model="formData.categoryId" required>
-                <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+                <option 
+                  v-for="cat in flatCategories" 
+                  :key="cat.id" 
+                  :value="cat.id"
+                >
+                  {{ '\u3000'.repeat(cat.level) }}{{ cat.name }}
+                </option>
               </select>
             </div>
           </div>
@@ -226,6 +248,7 @@ function formatDate(dateStr: string): string {
               language="zh-CN"
               :preview="true"
               style="height: 400px;"
+              @onUploadImg="onUploadImg"
             />
           </div>
           <div class="modal-actions flex gap-4 justify-between">
