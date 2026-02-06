@@ -1,0 +1,17 @@
+# Spec-Kit + OpenSpec C++ 示例
+
+本目录包含使用 C++ 语言实现的 Spec-Kit + OpenSpec 示例。
+
+## 环境要求
+
+- C++17 或更高版本
+- CMake 3.10 或更高版本
+- GCC/Clang/MSVC
+
+## 示例列表
+
+待添加...
+
+## 编译运行
+
+待添加...
