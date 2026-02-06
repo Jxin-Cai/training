@@ -19,13 +19,16 @@ public class ContentService {
     private final ContentRepository contentRepository;
     private final CategoryRepository categoryRepository;
     private final MarkdownRenderer markdownRenderer;
+    private final CategoryService categoryService;
     
     public ContentService(ContentRepository contentRepository, 
                           CategoryRepository categoryRepository,
-                          MarkdownRenderer markdownRenderer) {
+                          MarkdownRenderer markdownRenderer,
+                          CategoryService categoryService) {
         this.contentRepository = contentRepository;
         this.categoryRepository = categoryRepository;
         this.markdownRenderer = markdownRenderer;
+        this.categoryService = categoryService;
     }
     
     public ContentDto create(CreateContentRequest request) {
@@ -59,6 +62,13 @@ public class ContentService {
     
     public List<ContentDto> findByCategoryId(String categoryId) {
         return contentRepository.findByCategoryId(categoryId).stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+    
+    public List<ContentDto> findByCategoryWithDescendants(String categoryId) {
+        List<String> categoryIds = categoryService.getDescendantIds(categoryId);
+        return contentRepository.findByCategoryIds(categoryIds).stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }

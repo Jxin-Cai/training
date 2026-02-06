@@ -10,4 +10,10 @@ public interface CategoryRepository {
     List<Category> findAll();
     void deleteById(String id);
     boolean existsById(String id);
+    
+    // 新增方法
+    List<Category> findByParentId(String parentId);
+    List<Category> findRootCategories();
+    List<Category> findDescendants(String categoryId);
+    boolean hasChildren(String categoryId);
 }

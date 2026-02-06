@@ -9,6 +9,7 @@ public interface ContentRepository {
     Optional<Content> findById(String id);
     List<Content> findAll();
     List<Content> findByCategoryId(String categoryId);
+    List<Content> findByCategoryIds(List<String> categoryIds);
     List<Content> findAllPublished();
     List<Content> findAllPublishedOrderByPublishedAtDesc();
     void deleteById(String id);

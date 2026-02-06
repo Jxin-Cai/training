@@ -1,19 +1,36 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import type { Category, CreateCategoryRequest, UpdateCategoryRequest } from '@/types'
+import { ref, computed } from 'vue'
+import type { Category, CategoryTreeNode, CreateCategoryRequest, UpdateCategoryRequest } from '@/types'
 import { categoryApi } from '@/api'
 
 export const useCategoryStore = defineStore('category', () => {
-  const categories = ref<Category[]>([])
+  const categoryTree = ref<CategoryTreeNode[]>([])
+  const flatCategories = ref<Category[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  async function fetchCategories() {
+  const categories = computed(() => flatCategories.value)
+
+  async function fetchCategoryTree() {
     loading.value = true
     error.value = null
     try {
-      const response = await categoryApi.getAll()
-      categories.value = response.data
+      const response = await categoryApi.getTree()
+      categoryTree.value = response.data
+    } catch (e) {
+      error.value = 'Failed to fetch category tree'
+      console.error(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function fetchFlatCategories() {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await categoryApi.getFlat()
+      flatCategories.value = response.data
     } catch (e) {
       error.value = 'Failed to fetch categories'
       console.error(e)
@@ -22,12 +39,16 @@ export const useCategoryStore = defineStore('category', () => {
     }
   }
 
+  async function fetchCategories() {
+    await Promise.all([fetchCategoryTree(), fetchFlatCategories()])
+  }
+
   async function createCategory(data: CreateCategoryRequest) {
     loading.value = true
     error.value = null
     try {
       const response = await categoryApi.create(data)
-      categories.value.push(response.data)
+      await fetchCategories()
       return response.data
     } catch (e) {
       error.value = 'Failed to create category'
@@ -43,10 +64,7 @@ export const useCategoryStore = defineStore('category', () => {
     error.value = null
     try {
       const response = await categoryApi.update(id, data)
-      const index = categories.value.findIndex(c => c.id === id)
-      if (index !== -1) {
-        categories.value[index] = response.data
-      }
+      await fetchCategories()
       return response.data
     } catch (e) {
       error.value = 'Failed to update category'
@@ -62,9 +80,14 @@ export const useCategoryStore = defineStore('category', () => {
     error.value = null
     try {
       await categoryApi.delete(id)
-      categories.value = categories.value.filter(c => c.id !== id)
-    } catch (e) {
-      error.value = 'Failed to delete category'
+      await fetchCategories()
+    } catch (e: any) {
+      if (e.response?.data?.error) {
+        error.value = e.response.data.error
+        alert(e.response.data.error)
+      } else {
+        error.value = 'Failed to delete category'
+      }
       console.error(e)
       throw e
     } finally {
@@ -72,13 +95,30 @@ export const useCategoryStore = defineStore('category', () => {
     }
   }
 
+  function getCategoryPath(categoryId: string): string[] {
+    const path: string[] = []
+    let current = flatCategories.value.find(c => c.id === categoryId)
+    while (current) {
+      path.unshift(current.name)
+      current = current.parentId 
+        ? flatCategories.value.find(c => c.id === current!.parentId)
+        : undefined
+    }
+    return path
+  }
+
   return {
+    categoryTree,
+    flatCategories,
     categories,
     loading,
     error,
+    fetchCategoryTree,
+    fetchFlatCategories,
     fetchCategories,
     createCategory,
     updateCategory,
     deleteCategory,
+    getCategoryPath,
   }
 })

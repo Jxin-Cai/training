@@ -1,15 +1,16 @@
 package com.cms.application.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-public record CategoryDto(
+public record CategoryTreeDto(
     String id,
     String name,
     String description,
     String parentId,
     int level,
-    String path,
     int sortOrder,
     LocalDateTime createdAt,
-    LocalDateTime updatedAt
+    LocalDateTime updatedAt,
+    List<CategoryTreeDto> children
 ) {}

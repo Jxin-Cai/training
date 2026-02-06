@@ -50,7 +50,7 @@ public class ContentController {
     
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<List<ContentDto>> getByCategory(@PathVariable String categoryId) {
-        return ResponseEntity.ok(contentService.findByCategoryId(categoryId));
+        return ResponseEntity.ok(contentService.findByCategoryWithDescendants(categoryId));
     }
     
     @PutMapping("/{id}")
