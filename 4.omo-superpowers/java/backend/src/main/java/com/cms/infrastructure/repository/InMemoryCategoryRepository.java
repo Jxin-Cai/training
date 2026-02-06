@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Repository
 public class InMemoryCategoryRepository implements CategoryRepository {
@@ -39,5 +40,38 @@ public class InMemoryCategoryRepository implements CategoryRepository {
     @Override
     public boolean existsById(String id) {
         return store.containsKey(id);
+    }
+    
+    @Override
+    public List<Category> findByParentId(String parentId) {
+        return store.values().stream()
+                .filter(c -> {
+                    if (parentId == null) {
+                        return c.getParentId() == null;
+                    }
+                    return parentId.equals(c.getParentId());
+                })
+                .sorted((a, b) -> Integer.compare(a.getSortOrder(), b.getSortOrder()))
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<Category> findRootCategories() {
+        return findByParentId(null);
+    }
+    
+    @Override
+    public List<Category> findDescendants(String categoryId) {
+        return findById(categoryId)
+                .map(parent -> store.values().stream()
+                        .filter(c -> c.getPath().startsWith(parent.getPath() + "/"))
+                        .collect(Collectors.toList()))
+                .orElse(new ArrayList<>());
+    }
+    
+    @Override
+    public boolean hasChildren(String categoryId) {
+        return store.values().stream()
+                .anyMatch(c -> categoryId.equals(c.getParentId()));
     }
 }
