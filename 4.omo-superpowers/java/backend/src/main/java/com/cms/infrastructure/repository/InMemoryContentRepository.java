@@ -37,6 +37,13 @@ public class InMemoryContentRepository implements ContentRepository {
     }
     
     @Override
+    public List<Content> findByCategoryIds(List<String> categoryIds) {
+        return store.values().stream()
+                .filter(c -> categoryIds.contains(c.getCategoryId()))
+                .collect(Collectors.toList());
+    }
+    
+    @Override
     public List<Content> findAllPublished() {
         return store.values().stream()
                 .filter(Content::isPublished)
