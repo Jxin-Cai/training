@@ -1,0 +1,21 @@
+{
+  "name": "cms-frontend",
+  "version": "1.0.0",
+  "description": "CMS Content Management System - Frontend",
+  "scripts": {
+    "serve": "vue-cli-service serve --port 3000",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.5",
+    "axios": "^1.6.2",
+    "markdown-it": "^13.0.2",
+    "element-plus": "^2.4.4"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "^5.0.8",
+    "vue-template-compiler": "^2.7.15"
+  }
+}
