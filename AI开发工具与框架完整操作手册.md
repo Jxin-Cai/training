@@ -1,6 +1,7 @@
 # AI开发工具与框架完整操作手册
 
 本手册提供 AI 驱动开发的完整工具链和框架指南，包括：
+
 - **前置工具安装**：Node.js、Python、C++、Java 等基础环境
 - **规格驱动开发**：Spec-Kit、OpenSpec
 - **AI 协作框架**：BMAD、Superpowers、Ralph Loop、OMO
@@ -22,8 +23,6 @@
 - [Superpowers 框架](#superpowers-框架)
 - [Ralph Loop 框架](#ralph-loop-框架)
 - [OMO 框架](#omo-框架)
-- [框架选型建议](#框架选型建议)
-- [八条最佳实践速查](#八条最佳实践速查)
 
 ---
 
@@ -443,14 +442,13 @@ opencode help
 ```
 
 **参考资料：**
+
 - [OpenCode 官方文档](https://opencode.ai/docs)
 - [OpenCode GitHub](https://github.com/opencode-ai/opencode)
 
 ---
 
 ## Spec-Kit 操作手册
-
-
 
 ### 📦 安装步骤
 
@@ -464,7 +462,7 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"  # Windows
 uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
 
 # 3. 初始化项目 (在项目目录下执行)
-specify init 
+specify init
 
 # 4. 验证安装
 specify check
@@ -479,6 +477,7 @@ specify check
 **核心四步法**: Specify → Plan → Tasks → Implement
 
 #### 第1步: 设定项目规范 (Constitution)
+
 ```text
 /speckit.constitution 使用 TypeScript,禁止 any 类型。组件必须单一职责。遵循《重构》中的坏味道定位原则。
 ```
@@ -488,6 +487,7 @@ specify check
 ---
 
 #### 第2步: 描述需求 (Specify)
+
 ```text
 /speckit.specify 开发一个番茄时钟 Web 应用。
 功能包括:
@@ -503,6 +503,7 @@ specify check
 ---
 
 #### 第3步: 生成技术方案 (Plan) ⚠️ 关键检查点
+
 ```text
 /speckit.plan 使用 React + TypeScript 实现单页应用。
 使用 Context API 管理状态,localStorage 存储数据。
@@ -512,6 +513,7 @@ UI 采用 CSS Grid 布局,支持响应式设计。
 **作用**: AI 生成详细的技术方案文档
 
 **⚠️ 必须人工审核**:
+
 - 检查接口契约是否完整(前后端分离项目)
 - 检查技术选型是否合理
 - 检查功能覆盖是否完整
@@ -520,6 +522,7 @@ UI 采用 CSS Grid 布局,支持响应式设计。
 ---
 
 #### 第4步: 拆解任务 (Tasks)
+
 ```text
 /speckit.tasks
 ```
@@ -529,6 +532,7 @@ UI 采用 CSS Grid 布局,支持响应式设计。
 ---
 
 #### 第5步: 开始实现 (Implement)
+
 ```text
 /speckit.implement
 ```
@@ -539,12 +543,12 @@ UI 采用 CSS Grid 布局,支持响应式设计。
 
 ### ✅ 最佳实践
 
-| 适用场景 | 说明 |
-|---------|------|
+| 适用场景             | 说明                                   |
+| -------------------- | -------------------------------------- |
 | ✅ **Epic 级新项目** | 从零到一的大型单端项目(纯前端或纯后端) |
-| ✅ **需要严格规范** | 团队协作,需要统一架构和编码规范 |
-| ❌ **前后端强耦合** | 接口契约管理不稳定,需额外人工补充 |
-| ❌ **小型快速需求** | 流程相对重,不如直接 VB Coding |
+| ✅ **需要严格规范**  | 团队协作,需要统一架构和编码规范        |
+| ❌ **前后端强耦合**  | 接口契约管理不稳定,需额外人工补充      |
+| ❌ **小型快速需求**  | 流程相对重,不如直接 VB Coding          |
 
 ---
 
@@ -582,6 +586,7 @@ openspec --version
 **核心流程**: Proposal → Apply → Archive
 
 #### 第1步: 创建变更提案 (Proposal)
+
 ```text
 /openspec:proposal 增加图片点赞功能。
 每个图片下方显示心形图标和点赞数,点击时有弹跳动画效果。
@@ -592,6 +597,7 @@ openspec --version
 ---
 
 #### 第2步: 查看和审核提案
+
 ```bash
 # 查看所有提案
 openspec list
@@ -601,6 +607,7 @@ openspec show add-like-feature
 ```
 
 **⚠️ 必须人工审核**:
+
 - 检查需求理解是否准确
 - 检查技术方案是否完整
 - 如需调整,直接编辑提案文件或重新生成
@@ -608,6 +615,7 @@ openspec show add-like-feature
 ---
 
 #### 第3步: 应用提案 (Apply)
+
 ```text
 /openspec:apply add-like-feature
 ```
@@ -617,11 +625,13 @@ openspec show add-like-feature
 ---
 
 #### 第4步: 测试验证
+
 手动或自动测试变更是否符合预期
 
 ---
 
 #### 第5步: 归档提案 (Archive)
+
 ```text
 /openspec:archive add-like-feature
 ```
@@ -632,11 +642,11 @@ openspec show add-like-feature
 
 ### ✅ 最佳实践
 
-| 适用场景 | 说明 |
-|---------|------|
-| ✅ **增量迭代需求** | 不熟悉的项目,快速新增功能 |
-| ✅ **变更隔离管理** | 每个 Proposal 独立,像 Git PR 一样清晰 |
-| ✅ **知识沉淀** | 归档后自动形成项目文档 |
+| 适用场景              | 说明                                      |
+| --------------------- | ----------------------------------------- |
+| ✅ **增量迭代需求**   | 不熟悉的项目,快速新增功能                 |
+| ✅ **变更隔离管理**   | 每个 Proposal 独立,像 Git PR 一样清晰     |
+| ✅ **知识沉淀**       | 归档后自动形成项目文档                    |
 | ❌ **大批量新增功能** | 一次 Proposal 不要塞太多功能(建议 1-3 个) |
 
 ---
@@ -658,6 +668,7 @@ openspec show add-like-feature
 BMAD（Business Modeling and Architecture Development）提供完整的软件工程流程，包含 BA、PM、UX、EA、QA、SM、DEV 等 7 大专业角色。
 
 **适用场景：**
+
 - 需要完整方案文档的项目
 - 对质量要求极高的场景
 - 学习软件工程全流程的标准操作
@@ -667,6 +678,7 @@ BMAD（Business Modeling and Architecture Development）提供完整的软件工
 ### 安装步骤
 
 **前置要求：**
+
 - Node.js v20+
 - AI IDE（Claude Code、Cursor、Windsurf 等）
 
@@ -927,6 +939,7 @@ sequenceDiagram
 - ⚠️ **时间成本高**：完整流程需要 5-6 小时以上
 
 **参考资料：**
+
 - [BMAD 官方文档](https://github.com/bmad-code-org/BMAD-METHOD)
 - [BMAD 实战案例](https://github.com/Jxin-Cai/VB-Coding-Demo/tree/main/sdd/bmad)
 
@@ -939,6 +952,7 @@ sequenceDiagram
 Superpowers 是简洁高效的 SDD 框架，核心理念是用户只需聚焦需求澄清和方案选型，后续交给 AI 自动完成。
 
 **适用场景：**
+
 - 快速 Demo 开发
 - 标准 CRUD 功能
 - 可接受"炼丹"（样式/交互靠运气）的项目
@@ -948,6 +962,7 @@ Superpowers 是简洁高效的 SDD 框架，核心理念是用户只需聚焦需
 ### 安装步骤
 
 **前置要求：**
+
 - Claude Code 或 OpenCode
 - Git 跟踪的项目目录
 
@@ -965,6 +980,11 @@ Superpowers 是简洁高效的 SDD 框架，核心理念是用户只需聚焦需
 
 Superpowers 在 OpenCode 中的安装分为自动安装和手动安装两种方式。
 
+基于 opencode 安装,直接输入一下内容
+
+```shell
+Clone https://github.com/obra/superpowers to ~/.config/opencode/superpowers, then create directory ~/.config/opencode/plugins, then symlink ~/.config/opencode/superpowers/.opencode/plugins/superpowers.js to ~/.config/opencode/plugins/superpowers.js, then symlink ~/.config/opencode/superpowers/skills to ~/.config/opencode/skills/superpowers, then restart opencode.
+```
 
 **手动安装**
 
@@ -999,6 +1019,7 @@ ln -s ~/.config/opencode/superpowers/skills ~/.config/opencode/skills/superpower
 <summary>Windows 手动安装步骤</summary>
 
 **前置要求：**
+
 - Git 已安装
 - 启用开发者模式（Settings → System → For developers）或使用管理员权限
 
@@ -1079,10 +1100,12 @@ cmd //c "mklink /J \"$(cygpath -w ~/.config/opencode/skills/superpowers)\" \"$(c
 **Windows 故障排除：**
 
 如果遇到 "You do not have sufficient privilege" 错误：
+
 - 在 Windows 设置中启用开发者模式，或
 - 右键点击终端 → "以管理员身份运行"
 
 如果遇到 "Cannot create a file when that file already exists" 错误：
+
 - 先运行删除命令（步骤 3），然后重试
 
 </details>
@@ -1115,6 +1138,7 @@ Superpowers 的使用非常简洁，核心流程只需 2-3 步。
 ```
 
 然后输入需求描述或粘贴需求文档，按照提示进行交互：
+
 - 澄清需求细节
 - 确定技术选型
 - 选择实现方案
@@ -1136,6 +1160,7 @@ Superpowers 会自动调用：
 ```
 
 生成包含以下内容的实施计划：
+
 - 技术栈选择
 - API 设计
 - 数据模型
@@ -1145,6 +1170,7 @@ Superpowers 会自动调用：
 **步骤 4-9：自动化执行**
 
 之后流程自动进行：
+
 - **TDD Cycle**：RED（写测试）→ GREEN（写实现）→ REFACTOR（重构）
 - **Code Review**：规格合规性检查 + 代码质量审查
 - **Debugging**：遇到 Bug 自动调试修复
@@ -1156,14 +1182,17 @@ Superpowers 会自动调用：
 Superpowers 支持两种开发模式：
 
 **模式 A：Subagent-Driven（当前会话）**
+
 - 在当前会话中逐任务派发子代理
 - 快速迭代，适合小功能
 
 **模式 B：Parallel Session（独立会话）**
+
 - 在 worktree 中开新会话批量执行
 - 适合大功能，可以并行开发
 
 **参考资料：**
+
 - [Superpowers 官方文档](https://github.com/obra/superpowers)
 - [Superpowers Demo 实战案例](https://github.com/Jxin-Cai/superpowers-demo)
 
@@ -1176,6 +1205,7 @@ Superpowers 支持两种开发模式：
 Ralph Loop 是 Claude Code 的循环执行插件，核心机制是持续执行任务直到完成，遇到问题自己尝试解决。
 
 **适用场景：**
+
 - 需要持续执行不中断的任务
 - 长时间运行的代码生成
 - 配合高质量方案使用
@@ -1185,6 +1215,7 @@ Ralph Loop 是 Claude Code 的循环执行插件，核心机制是持续执行�
 ### 安装步骤
 
 **前置要求：**
+
 - Claude Code 已安装并配置
 - Anthropic API 订阅（推荐 $100/月或更高）
 - Git 跟踪的项目目录
@@ -1229,6 +1260,7 @@ Ralph Loop 的使用极其简单，只需一行命令。
 #### 工作机制
 
 执行后，AI 会：
+
 1. **循环执行任务**：不轻易中断
 2. **自动处理问题**：遇到小问题自己尝试解决
 3. **持续验证**：确保真正完成
@@ -1243,12 +1275,14 @@ Ralph Loop 的使用极其简单，只需一行命令。
 - ⚠️ **Token 消耗高**：长时间运行消耗大量 Token
 
 **最佳实践：**
+
 - 提供高质量的方案设计
 - 任务描述要清晰具体
 - 验收标准要明确
 - 适合晚上运行，早上收菜
 
 **参考资料：**
+
 - [Ralph Loop 官方文档](https://github.com/anthropics/ralph-loop)
 
 ---
@@ -1260,6 +1294,7 @@ Ralph Loop 的使用极其简单，只需一行命令。
 OMO（Oh My OpenCode）是智能多模型协同系统，通过智能调度器 + 多角色协同 + 多模型编排来保证任务持续完成。
 
 **适用场景：**
+
 - 对产出无明确定制要求
 - 可接受高 Token 成本
 - 追求生成质量天花板
@@ -1269,6 +1304,7 @@ OMO（Oh My OpenCode）是智能多模型协同系统，通过智能调度器 + 
 ### 安装步骤
 
 **前置要求：**
+
 - OpenCode 已安装（参见 [OpenCode 安装](#opencode-安装)）
 - 至少一个 AI 订阅：Claude Pro/Max、ChatGPT Plus、Gemini 或 GitHub Copilot
 
@@ -1287,12 +1323,14 @@ npx oh-my-opencode install
 安装程序会询问你的订阅情况，根据回答自动配置对应的模型。
 
 **推荐配置（体验完整功能）：**
+
 - Claude Pro/Max（用于 Sisyphus 调度者 + Librarian）
 - ChatGPT Plus（用于 Oracle 架构师）
 - Gemini（用于 Frontend Engineer）
 - GitHub Copilot（用于 Explorer 代码侦探）
 
 **最低配置：**
+
 - 至少一个主要模型订阅（Claude 或 GPT）
 - 其他角色可以复用或禁用
 
@@ -1330,13 +1368,13 @@ ulw 重构 services 目录，统一错误处理和日志记录
 
 OMO 会根据任务类型，自动调度合适的角色：
 
-| 角色 | 模型 | 专长 | 触发场景 |
-|------|------|------|----------|
-| **Sisyphus（调度者）** | Claude Opus 4.5 | 任务分析、规划编排 | 默认入口 |
-| **Oracle（架构师）** | GPT 5.2 | 架构设计、复杂 Debug | 架构设计、逻辑推理 |
-| **Librarian（文档 RAG）** | Claude Sonnet 4.5 | 官方文档、代码分析 | 文档查询、开源分析 |
-| **Frontend Engineer** | Gemini 3 Pro High | UI/UX 设计、创意 | 前端开发、视觉设计 |
-| **Explorer（代码侦探）** | Grok Code | 代码定位、快速探索 | 代码库搜索、模式匹配 |
+| 角色                      | 模型              | 专长                 | 触发场景             |
+| ------------------------- | ----------------- | -------------------- | -------------------- |
+| **Sisyphus（调度者）**    | Claude Opus 4.5   | 任务分析、规划编排   | 默认入口             |
+| **Oracle（架构师）**      | GPT 5.2           | 架构设计、复杂 Debug | 架构设计、逻辑推理   |
+| **Librarian（文档 RAG）** | Claude Sonnet 4.5 | 官方文档、代码分析   | 文档查询、开源分析   |
+| **Frontend Engineer**     | Gemini 3 Pro High | UI/UX 设计、创意     | 前端开发、视觉设计   |
+| **Explorer（代码侦探）**  | Grok Code         | 代码定位、快速探索   | 代码库搜索、模式匹配 |
 
 #### 工作流程
 
@@ -1347,8 +1385,8 @@ OMO 会根据任务类型，自动调度合适的角色：
 5. **Todo 强制完成**：Todo Continuation Enforcer 确保所有待办完成
 6. **循环直到完成**：不轻易中断，问题自己修复
 
-
 **参考资料：**
+
 - [OMO 官方文档](https://github.com/code-yeongyu/oh-my-opencode)
 - [OMO 安装指南](https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/refs/heads/master/docs/guide/installation.md)
 
