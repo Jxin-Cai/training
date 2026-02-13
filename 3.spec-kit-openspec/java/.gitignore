@@ -1,0 +1,60 @@
+# Java
+*.class
+*.jar
+*.war
+*.ear
+target/
+.gradle/
+build/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+.claude/
+.cursor/
+.opencode/
+*.iml
+*.ipr
+*.iws
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+backend.log
+frontend.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Uploads
+uploads/
+backend/src/main/resources/uploads/*
+!backend/src/main/resources/uploads/.gitkeep
+
+# Dependencies
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+.nyc_output/
+
+# PID files
+*.pid

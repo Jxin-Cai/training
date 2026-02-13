@@ -1,0 +1,158 @@
+# 项目宪法 (Constitution)
+
+本文档定义了本项目的核心原则和约束，所有代码生成和架构决策必须遵守这些规定。
+
+---
+
+## 1. 技术栈约束
+
+### 1.1 前端
+- **必须使用** Vue.js 框架
+- **必须使用** `npm run build` 作为构建命令
+- **禁止使用** React、Angular 等其他前端框架
+
+### 1.2 后端
+- **必须使用** Java 作为编程语言
+- **必须使用** Spring Boot 作为后端框架
+- **必须使用** 内存存储作为数据库（不使用外部数据库）
+- **禁止使用** MySQL、PostgreSQL 等外部数据库
+
+### 1.3 部署架构
+- **必须** 采用前后端分离部署
+- **必须** 提供 Linux/Mac shell 脚本和 Windows cmd 脚本
+- **必须** 支持一键部署/停止和单独部署/停止前端或后端
+
+---
+
+## 2. 后端架构规范 (DDD)
+
+### 2.1 分层架构
+所有后端代码**必须**按照以下 DDD 分层组织：
+
+| 层级 | 职责 | 组件 |
+|------|------|------|
+| Presentation Layer | 处理 HTTP 请求/响应 | Controller, DTO |
+| Application Layer | 协调业务用例 | Service, Application Service |
+| Domain Layer | 核心业务逻辑 | Entity, Value Object, Domain Service, Repository Interface |
+| Infrastructure Layer | 技术实现 | Repository Implementation, 外部服务调用 |
+
+### 2.2 依赖方向
+- **必须** 遵循依赖倒置原则
+- 外层依赖内层，内层不依赖外层
+- Domain Layer **禁止依赖** Infrastructure Layer
+
+### 2.3 POJO 规范
+- **必须** 使用充血模型（Rich Domain Model）
+- **禁止** 使用贫血模型（Anemic Domain Model）
+- Entity **必须** 具有唯一标识
+- Value Object **必须** 是不可变的
+
+---
+
+## 3. 代码质量原则
+
+### 3.1 SOLID 原则
+所有代码**必须**遵循 SOLID 原则：
+- **S**ingle Responsibility: 单一职责
+- **O**pen/Closed: 开闭原则
+- **L**iskov Substitution: 里氏替换
+- **I**nterface Segregation: 接口隔离
+- **D**ependency Inversion: 依赖倒置
+
+### 3.2 避免代码坏味道
+**必须** 避免以下代码坏味道：
+- 重复代码 (Duplicated Code)
+- 过长方法 (Long Method)
+- 过大类 (Large Class)
+- 过长参数列表 (Long Parameter List)
+- 发散式变化 (Divergent Change)
+- 霰弹式修改 (Shotgun Surgery)
+
+### 3.3 Effective Java 规范
+**必须** 遵循《Effective Java》最佳实践：
+- 多参数构造**应该**使用 Builder 模式
+- **必须** 优先使用枚举而非 int 常量
+- **应该** 最小化可变性
+- **应该** 合理使用 Optional
+- **必须** 优先使用标准异常
+
+---
+
+## 4. 部署脚本规范
+
+### 4.1 部署脚本 (deploy.sh / deploy.cmd)
+**必须** 支持以下命令：
+```bash
+./deploy.sh              # 一键部署
+./deploy.sh frontend     # 单独部署前端
+./deploy.sh backend      # 单独部署后端
+```
+
+### 4.2 停止脚本 (shutdown.sh / shutdown.cmd)
+**必须** 支持以下命令：
+```bash
+./shutdown.sh            # 一键停止
+./shutdown.sh frontend   # 单独停止前端
+./shutdown.sh backend    # 单独停止后端
+```
+
+### 4.3 优雅关闭要求
+- **必须** 发送 SIGTERM 信号进行优雅关闭
+- **必须** 等待应用完成关闭（最多 30 秒）
+- **仅在超时时** 使用 SIGKILL 强制终止
+- **必须** 清理临时文件和日志
+
+---
+
+## 5. 目录结构规范
+
+```
+project-root/
+├── frontend/           # Vue.js 前端项目
+│   ├── src/
+│   ├── package.json
+│   └── ...
+├── backend/            # Spring Boot 后端项目
+│   ├── src/main/java/
+│   │   └── com/example/
+│   │       ├── presentation/    # Controller, DTO
+│   │       ├── application/     # Service
+│   │       ├── domain/          # Entity, Value Object, Repository Interface
+│   │       └── infrastructure/  # Repository Implementation
+│   └── pom.xml
+├── deploy.sh           # Linux/Mac 部署脚本
+├── deploy.cmd          # Windows 部署脚本
+├── shutdown.sh         # Linux/Mac 停止脚本
+├── shutdown.cmd        # Windows 停止脚本
+└── doc/
+    └── SPEC.md         # 技术规范文档
+```
+
+---
+
+## 6. 禁止事项
+
+1. **禁止** 在 Domain 层引入 Spring 注解（保持领域纯净）
+2. **禁止** 使用外部数据库（MySQL、PostgreSQL、MongoDB 等）
+3. **禁止** 在代码中硬编码配置（应使用配置文件）
+4. **禁止** 跳过分层直接调用（如 Controller 直接调用 Repository）
+5. **禁止** 使用非 Vue.js 的前端框架
+
+---
+
+## 7. 审查清单
+
+在提交代码前，**必须**确认：
+
+- [ ] 代码遵循 DDD 分层架构
+- [ ] Domain 层不依赖 Infrastructure 层
+- [ ] POJO 使用充血模型
+- [ ] 无明显代码坏味道
+- [ ] 遵循 SOLID 原则
+- [ ] 部署脚本在 Linux/Mac 和 Windows 上均可运行
+- [ ] 无硬编码配置
+- [ ] 无外部数据库依赖
+
+---
+
+*本宪法基于 doc/SPEC.md 规范制定，所有开发活动必须遵守。*

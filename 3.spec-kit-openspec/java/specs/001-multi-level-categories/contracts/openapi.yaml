@@ -1,0 +1,967 @@
+openapi: 3.0.3
+info:
+  title: CMS API - Multi-Level Categories & Rich Text Enhancement
+  description: API specification for CMS with multi-level categories, rich text editor, and image upload
+  version: 1.0.0
+  contact:
+    name: CMS Development Team
+
+servers:
+  - url: http://localhost:8080/api
+    description: Development server
+  - url: https://api.cms.example.com/api
+    description: Production server
+
+tags:
+  - name: Categories
+    description: Category management operations
+  - name: Content
+    description: Content management operations
+  - name: Images
+    description: Image upload and management operations
+
+paths:
+  # ============================================
+  # Category Endpoints
+  # ============================================
+
+  /categories:
+    get:
+      tags:
+        - Categories
+      summary: Get all categories
+      description: Retrieves all categories in a flat list. Use tree endpoint for hierarchical structure.
+      operationId: getAllCategories
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+
+    post:
+      tags:
+        - Categories
+      summary: Create a new category
+      description: Creates a new category. Parent ID is optional for root categories.
+      operationId: createCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCategoryRequest'
+      responses:
+        '201':
+          description: Category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Invalid request (e.g., circular reference, validation error)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Category name already exists in same parent scope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /categories/tree:
+    get:
+      tags:
+        - Categories
+      summary: Get category tree
+      description: Retrieves all categories in a hierarchical tree structure.
+      operationId: getCategoryTree
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryTreeNode'
+
+  /categories/{id}:
+    get:
+      tags:
+        - Categories
+      summary: Get category by ID
+      description: Retrieves a single category with its parent and children information.
+      operationId: getCategoryById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Categories
+      summary: Update a category
+      description: Updates category details including name, description, parent, and display order.
+      operationId: updateCategory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCategoryRequest'
+      responses:
+        '200':
+          description: Category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Invalid request (e.g., circular reference)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Categories
+      summary: Delete a category
+      description: Deletes a category. Requires handling of child categories and associated content.
+      operationId: deleteCategory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: handleChildren
+          in: query
+          description: How to handle child categories (DELETE, REASSIGN_TO_PARENT, PREVENT)
+          schema:
+            type: string
+            enum: [DELETE, REASSIGN_TO_PARENT, PREVENT]
+            default: PREVENT
+        - name: handleContent
+          in: query
+          description: How to handle associated content (DELETE, REASSIGN_TO_PARENT, PREVENT)
+          schema:
+            type: string
+            enum: [DELETE, REASSIGN_TO_PARENT, PREVENT]
+            default: PREVENT
+      responses:
+        '204':
+          description: Category deleted successfully
+        '400':
+          description: Cannot delete - category has children or content and PREVENT specified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /categories/{id}/children:
+    get:
+      tags:
+        - Categories
+      summary: Get direct children of a category
+      description: Retrieves all direct child categories (not descendants) of the specified category.
+      operationId: getCategoryChildren
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+
+  /categories/{id}/descendants:
+    get:
+      tags:
+        - Categories
+      summary: Get all descendants of a category
+      description: Retrieves the category and all its descendants at any depth level.
+      operationId: getCategoryDescendants
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+
+  /categories/{id}/content:
+    get:
+      tags:
+        - Categories
+      summary: Get content in a category
+      description: Retrieves all content in a category, optionally including content from descendant categories.
+      operationId: getCategoryContent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: includeDescendants
+          in: query
+          description: Include content from all descendant categories
+          schema:
+            type: boolean
+            default: false
+        - name: status
+          in: query
+          description: Filter by publication status
+          schema:
+            type: string
+            enum: [DRAFT, PUBLISHED]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContentSummary'
+
+  # ============================================
+  # Content Endpoints
+  # ============================================
+
+  /content:
+    get:
+      tags:
+        - Content
+      summary: Get all content
+      description: Retrieves all content items. Filter by status or category if needed.
+      operationId: getAllContent
+      parameters:
+        - name: status
+          in: query
+          description: Filter by publication status
+          schema:
+            type: string
+            enum: [DRAFT, PUBLISHED]
+        - name: categoryId
+          in: query
+          description: Filter by category ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContentSummary'
+
+    post:
+      tags:
+        - Content
+      summary: Create new content
+      description: Creates a new content item. Body can contain HTML with embedded images.
+      operationId: createContent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContentRequest'
+      responses:
+        '201':
+          description: Content created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Content'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /content/{id}:
+    get:
+      tags:
+        - Content
+      summary: Get content by ID
+      description: Retrieves full content details including body HTML.
+      operationId: getContentById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Content'
+        '404':
+          description: Content not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Content
+      summary: Update content
+      description: Updates content details. Body can contain HTML with embedded images.
+      operationId: updateContent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateContentRequest'
+      responses:
+        '200':
+          description: Content updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Content'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Content not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Content
+      summary: Delete content
+      description: Permanently deletes a content item.
+      operationId: deleteContent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Content deleted successfully
+        '404':
+          description: Content not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /content/{id}/publish:
+    post:
+      tags:
+        - Content
+      summary: Publish content
+      description: Changes content status to PUBLISHED, making it visible on frontend.
+      operationId: publishContent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Content published successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Content'
+        '404':
+          description: Content not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /content/{id}/unpublish:
+    post:
+      tags:
+        - Content
+      summary: Unpublish content
+      description: Changes content status to DRAFT, hiding it from frontend.
+      operationId: unpublishContent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Content unpublished successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Content'
+        '404':
+          description: Content not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ============================================
+  # Image Endpoints
+  # ============================================
+
+  /images/upload:
+    post:
+      tags:
+        - Images
+      summary: Upload an image
+      description: |
+        Uploads an image file. Client should compress before upload.
+
+        Supported formats: JPEG, PNG, GIF, WebP
+        Max file size: 10MB (recommend compress to 2MB on client)
+
+        Security: Server validates magic bytes, re-encodes image, generates safe filename.
+      operationId: uploadImage
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file to upload
+              required:
+                - file
+      responses:
+        '201':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageUploadResponse'
+        '400':
+          description: Invalid file (wrong type, too large, corrupted)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: File size exceeds 10MB limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /images/{id}:
+    get:
+      tags:
+        - Images
+      summary: Get image metadata
+      description: Retrieves image metadata (not the file itself).
+      operationId: getImageById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Images
+      summary: Delete an image
+      description: Deletes an image. Warning - may break content that references this image.
+      operationId: deleteImage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Image deleted successfully
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # ==========================================
+    # Category Schemas
+    # ==========================================
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Technology
+        description:
+          type: string
+          example: Technology-related content
+        parentId:
+          type: integer
+          format: int64
+          nullable: true
+          example: null
+        path:
+          type: string
+          example: "/1/"
+        displayOrder:
+          type: integer
+          example: 0
+        hasChildren:
+          type: boolean
+          example: true
+        contentCount:
+          type: integer
+          description: Number of content items in this category (not including descendants)
+          example: 5
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - path
+        - displayOrder
+        - hasChildren
+        - contentCount
+
+    CategoryTreeNode:
+      type: object
+      description: Category node in hierarchical tree structure
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        parentId:
+          type: integer
+          format: int64
+          nullable: true
+        displayOrder:
+          type: integer
+        contentCount:
+          type: integer
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryTreeNode'
+      required:
+        - id
+        - name
+        - children
+        - contentCount
+
+    CreateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Programming
+        description:
+          type: string
+          maxLength: 500
+          example: Programming tutorials and articles
+        parentId:
+          type: integer
+          format: int64
+          nullable: true
+          description: Parent category ID, null for root category
+          example: 1
+        displayOrder:
+          type: integer
+          minimum: 0
+          default: 0
+          example: 0
+      required:
+        - name
+
+    UpdateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        parentId:
+          type: integer
+          format: int64
+          nullable: true
+          description: Set to null to make this a root category
+        displayOrder:
+          type: integer
+          minimum: 0
+
+    # ==========================================
+    # Content Schemas
+    # ==========================================
+
+    Content:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        title:
+          type: string
+          example: Getting Started with Vue.js 3
+        body:
+          type: string
+          description: Rich text HTML content with embedded images
+          example: "<h1>Introduction</h1><p>Vue.js 3 is...</p><img src=\"/api/images/123\" />"
+        categoryId:
+          type: integer
+          format: int64
+          example: 2
+        categoryName:
+          type: string
+          example: Programming
+        status:
+          type: string
+          enum: [DRAFT, PUBLISHED]
+          example: PUBLISHED
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - title
+        - body
+        - categoryId
+        - categoryName
+        - status
+
+    ContentSummary:
+      type: object
+      description: Lightweight content representation for listings
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        summary:
+          type: string
+          description: Plain text summary (first 200 chars)
+          example: "Vue.js 3 is a progressive JavaScript framework..."
+        categoryId:
+          type: integer
+          format: int64
+        categoryName:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, PUBLISHED]
+        createdAt:
+          type: string
+          format: date-time
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - title
+        - summary
+        - categoryId
+        - categoryName
+        - status
+
+    CreateContentRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Getting Started with Vue.js 3
+        body:
+          type: string
+          description: Rich text HTML content
+          example: "<h1>Introduction</h1><p>Vue.js 3 is...</p>"
+        categoryId:
+          type: integer
+          format: int64
+          example: 2
+        status:
+          type: string
+          enum: [DRAFT, PUBLISHED]
+          default: DRAFT
+          example: DRAFT
+      required:
+        - title
+        - body
+        - categoryId
+
+    UpdateContentRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        body:
+          type: string
+          description: Rich text HTML content
+        categoryId:
+          type: integer
+          format: int64
+
+    # ==========================================
+    # Image Schemas
+    # ==========================================
+
+    Image:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 123
+        filename:
+          type: string
+          description: Server-generated UUID filename
+          example: "550e8400-e29b-41d4-a716-446655440000.jpg"
+        originalFilename:
+          type: string
+          example: "vue-logo.png"
+        mimeType:
+          type: string
+          enum: ["image/jpeg", "image/png", "image/gif", "image/webp"]
+          example: "image/png"
+        fileSize:
+          type: integer
+          description: File size in bytes
+          example: 245760
+        width:
+          type: integer
+          description: Image width in pixels
+          example: 1920
+        height:
+          type: integer
+          description: Image height in pixels
+          example: 1080
+        url:
+          type: string
+          description: Public URL path for embedding in content
+          example: "/uploads/550e8400-e29b-41d4-a716-446655440000.jpg"
+        uploadedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - filename
+        - originalFilename
+        - mimeType
+        - fileSize
+        - url
+        - uploadedAt
+
+    ImageUploadResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 123
+        url:
+          type: string
+          description: URL to use in content img src
+          example: "/uploads/550e8400-e29b-41d4-a716-446655440000.jpg"
+        filename:
+          type: string
+          example: "550e8400-e29b-41d4-a716-446655440000.jpg"
+        originalFilename:
+          type: string
+          example: "vue-logo.png"
+        mimeType:
+          type: string
+          example: "image/png"
+        fileSize:
+          type: integer
+          example: 245760
+        width:
+          type: integer
+          example: 1920
+        height:
+          type: integer
+          example: 1080
+      required:
+        - id
+        - url
+        - filename
+        - originalFilename
+        - mimeType
+        - fileSize
+
+    # ==========================================
+    # Common Schemas
+    # ==========================================
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: "Bad Request"
+        message:
+          type: string
+          example: "Category name 'Technology' already exists in this parent scope"
+        path:
+          type: string
+          example: "/api/categories"
+        validationErrors:
+          type: array
+          description: Field-level validation errors (optional)
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+      required:
+        - timestamp
+        - status
+        - error
+        - message
+        - path
