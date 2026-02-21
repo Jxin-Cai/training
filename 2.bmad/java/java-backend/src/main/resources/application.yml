@@ -1,0 +1,12 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: java-cms
+
+# API Response Configuration
+api:
+  response:
+    success-code: 200
+    error-code: 400

@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: java-cms
+
+# Development specific settings
+logging:
+  level:
+    com.java: DEBUG
+    org.springframework.security: DEBUG
+
+# API Response Configuration
+api:
+  response:
+    success-code: 200
+    error-code: 400
