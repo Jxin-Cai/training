@@ -50,7 +50,8 @@ onMounted(async () => {
 const loadArticles = async () => {
   loading.value = true
   try {
-    const data = await api.getArticles({ page: 1, size: 100 })
+    // 后台管理需要获取所有文章（包括草稿）
+    const data = await api.getArticles({ all: true })
     articles.value = Array.isArray(data) ? data : (data.list || [])
   } finally {
     loading.value = false

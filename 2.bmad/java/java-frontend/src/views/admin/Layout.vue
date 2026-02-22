@@ -39,6 +39,12 @@
     
     <a-layout>
       <a-layout-header class="admin-header">
+        <div class="header-left">
+          <a-button type="link" @click="router.push('/')">
+            <HomeOutlined />
+            返回前台
+          </a-button>
+        </div>
         <div class="header-right">
           <a-dropdown>
             <a-button type="text">
@@ -110,7 +116,17 @@ const handleLogout = () => {
   background: #fff;
   padding: 0 24px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-right {
+  display: flex;
   align-items: center;
 }
 

@@ -42,11 +42,15 @@ public class ArticleController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<ArticleDTO>>> getAllArticles(
             @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false, defaultValue = "false") boolean all) {
         
         List<ArticleDTO> articles;
         
-        if (search != null && !search.trim().isEmpty()) {
+        // all=true 时返回所有文章（用于后台管理）
+        if (all) {
+            articles = articleService.getAllArticles();
+        } else if (search != null && !search.trim().isEmpty()) {
             articles = articleService.searchPublishedArticles(search);
         } else if (categoryId != null) {
             articles = articleService.getArticlesByCategory(categoryId);

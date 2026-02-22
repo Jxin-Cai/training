@@ -1,11 +1,11 @@
 <template>
   <div class="article-card" @click="$router.push(`/article/${article.id}`)">
     <h3 class="title">{{ article.title }}</h3>
-    <p class="summary">{{ article.summary }}</p>
+    <p class="summary">{{ getSummary(article.content) }}</p>
     <div class="meta">
       <span class="category">{{ article.categoryName }}</span>
       <span class="author">{{ article.authorName }}</span>
-      <span class="date">{{ article.createdAt }}</span>
+      <span class="date">{{ formatDate(article.createdAt) }}</span>
     </div>
   </div>
 </template>
@@ -17,6 +17,24 @@ defineProps({
     required: true
   }
 })
+
+// 从内容中提取摘要（前100个字符）
+const getSummary = (content) => {
+  if (!content) return ''
+  // 移除markdown标记
+  const text = content
+    .replace(/#+\s/g, '')
+    .replace(/\*\*/g, '')
+    .replace(/\n/g, ' ')
+    .trim()
+  return text.length > 100 ? text.substring(0, 100) + '...' : text
+}
+
+// 格式化日期
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  return dateStr.split('T')[0]
+}
 </script>
 
 <style scoped>
