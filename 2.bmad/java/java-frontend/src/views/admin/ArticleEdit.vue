@@ -97,14 +97,24 @@ const handleSaveDraft = async () => {
 const handlePublish = async () => {
   publishing.value = true
   try {
-    form.value.status = 'PUBLISHED'
+    let articleId = route.params.id
+    
+    // 先保存文章内容
     if (isEdit.value) {
-      await api.updateArticle(route.params.id, form.value)
+      form.value.status = 'DRAFT'  // 先保存为草稿
+      await api.updateArticle(articleId, form.value)
     } else {
-      await api.createArticle(form.value)
+      const result = await api.createArticle(form.value)
+      articleId = result.id
     }
+    
+    // 再调用发布接口
+    await api.publishArticle(articleId)
+    
     message.success('发布成功')
     router.push('/admin/articles')
+  } catch (error) {
+    message.error('发布失败：' + (error.message || '未知错误'))
   } finally {
     publishing.value = false
   }

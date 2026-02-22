@@ -16,10 +16,24 @@
             </a-tag>
           </template>
           <template v-if="column.key === 'action'">
-            <a-button type="link" @click="$router.push(`/admin/articles/${record.id}/edit`)">编辑</a-button>
-            <a-popconfirm title="确定删除？" @confirm="handleDelete(record.id)">
-              <a-button type="link" danger>删除</a-button>
-            </a-popconfirm>
+            <a-space>
+              <a-button type="link" size="small" @click="$router.push(`/admin/articles/${record.id}/edit`)">编辑</a-button>
+              <a-button 
+                v-if="record.status === 'DRAFT'" 
+                type="link" 
+                size="small" 
+                @click="handlePublish(record.id)"
+              >发布</a-button>
+              <a-button 
+                v-else 
+                type="link" 
+                size="small" 
+                @click="handleUnpublish(record.id)"
+              >取消发布</a-button>
+              <a-popconfirm title="确定删除？" @confirm="handleDelete(record.id)">
+                <a-button type="link" size="small" danger>删除</a-button>
+              </a-popconfirm>
+            </a-space>
           </template>
         </template>
       </a-table>
@@ -37,7 +51,7 @@ const columns = [
   { title: '分类', dataIndex: 'categoryName', key: 'category' },
   { title: '状态', key: 'status' },
   { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt' },
-  { title: '操作', key: 'action', width: 150 }
+  { title: '操作', key: 'action', width: 220 }
 ]
 
 const loading = ref(false)
@@ -62,6 +76,26 @@ const handleDelete = async (id) => {
   await api.deleteArticle(id)
   message.success('删除成功')
   await loadArticles()
+}
+
+const handlePublish = async (id) => {
+  try {
+    await api.publishArticle(id)
+    message.success('发布成功')
+    await loadArticles()
+  } catch (error) {
+    message.error('发布失败')
+  }
+}
+
+const handleUnpublish = async (id) => {
+  try {
+    await api.unpublishArticle(id)
+    message.success('已取消发布')
+    await loadArticles()
+  } catch (error) {
+    message.error('操作失败')
+  }
 }
 </script>
 

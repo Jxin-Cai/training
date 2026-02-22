@@ -75,6 +75,8 @@ export default {
   createArticle: (data) => api.post('/articles', data),
   updateArticle: (id, data) => api.put(`/articles/${id}`, data),
   deleteArticle: (id) => api.delete(`/articles/${id}`),
+  publishArticle: (id) => api.post(`/articles/${id}/publish`),
+  unpublishArticle: (id) => api.post(`/articles/${id}/unpublish`),
   
   // 分类
   getCategories: () => api.get('/categories'),
