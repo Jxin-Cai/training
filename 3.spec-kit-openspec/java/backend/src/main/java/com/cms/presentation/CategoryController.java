@@ -36,22 +36,8 @@ public class CategoryController {
 
     @GetMapping("/tree")
     public ResponseEntity<List<CategoryTreeNode>> getCategoryTree() {
-        List<Category> rootCategories = categoryService.getRootCategories();
-        List<CategoryTreeNode> tree = rootCategories.stream()
-            .map(cat -> buildTreeNode(cat))
-            .collect(Collectors.toList());
+        List<CategoryTreeNode> tree = categoryService.getTreeWithContentCounts();
         return ResponseEntity.ok(tree);
-    }
-
-    private CategoryTreeNode buildTreeNode(Category category) {
-        CategoryTreeNode node = CategoryTreeNode.from(category, categoryService.getContentCount(category.getId()));
-
-        List<Category> children = categoryService.getChildren(category.getId());
-        node.setChildren(children.stream()
-            .map(child -> buildTreeNode(child))
-            .collect(Collectors.toList()));
-
-        return node;
     }
 
     @GetMapping("/{id}")

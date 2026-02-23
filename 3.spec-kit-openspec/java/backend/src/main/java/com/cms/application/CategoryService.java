@@ -5,6 +5,8 @@ import com.cms.domain.category.CategoryRepository;
 import com.cms.domain.category.CategoryTreeService;
 import com.cms.domain.category.CircularReferenceException;
 import com.cms.domain.content.ContentRepository;
+import com.cms.domain.content.ContentStatus;
+import com.cms.presentation.dto.CategoryTreeNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -121,5 +123,13 @@ public class CategoryService {
 
     public long getContentCount(Long categoryId) {
         return contentRepository.findByCategoryId(categoryId).size();
+    }
+
+    public long getPublishedContentCount(Long categoryId) {
+        return contentRepository.countByCategoryIdAndStatus(categoryId, ContentStatus.PUBLISHED);
+    }
+
+    public List<CategoryTreeNode> getTreeWithContentCounts() {
+        return categoryTreeService.buildTreeWithContentCounts();
     }
 }

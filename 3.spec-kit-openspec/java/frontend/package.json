@@ -11,15 +11,21 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
-    "vue": "^3.4.0",
-    "vue-router": "^4.2.5",
-    "axios": "^1.6.2",
-    "@tiptap/vue-3": "^2.1.13",
-    "@tiptap/starter-kit": "^2.1.13",
     "@tiptap/extension-image": "^2.1.13",
     "@tiptap/extension-placeholder": "^2.1.13",
+    "@tiptap/extension-table": "^3.20.0",
+    "@tiptap/extension-table-cell": "^3.20.0",
+    "@tiptap/extension-table-header": "^3.20.0",
+    "@tiptap/extension-table-row": "^3.20.0",
+    "@tiptap/starter-kit": "^2.1.13",
+    "@tiptap/vue-3": "^2.1.13",
+    "axios": "^1.6.2",
+    "browser-image-compression": "^2.0.2",
     "element-plus": "^2.4.4",
-    "browser-image-compression": "^2.0.2"
+    "lowlight": "^3.3.0",
+    "tiptap-markdown": "^0.9.0",
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.5.2",
