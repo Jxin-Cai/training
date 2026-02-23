@@ -564,39 +564,69 @@ UI 采用 CSS Grid 布局,支持响应式设计。
 
 ## OpenSpec 操作手册
 
-### 📦 安装步骤
+### 📦 安装与升级/降级
 
 ```bash
-# 1. 全局安装 (要求 Node.js 20.19+)
+# 1. 全局安装最新版 (要求 Node.js 20.19+)
 npm install -g @fission-ai/openspec@latest
 
-# 2. 初始化项目 (在项目目录下执行)
-openspec init
-
-# 3. 验证安装
+# 2. 验证版本
 openspec --version
+npm ls -g @fission-ai/openspec
+
+# 3. 初始化项目 (在项目目录下执行)
+openspec init
+```
+
+**版本升级（升级到最新版）**
+
+```bash
+npm un -g @fission-ai/openspec
+npm install -g @fission-ai/openspec@latest
+openspec --version
+```
+
+**版本降级（回退到指定版本）**
+
+```bash
+# 示例：回退到 v0.23.0
+npm un -g @fission-ai/openspec
+npm install -g @fission-ai/openspec@v0.23.0
+openspec --version
+```
+
+**版本切换排错（可选）**
+
+```bash
+# 如遇版本冲突,可先卸载再安装
+npm uninstall -g @fission-ai/openspec
+npm install -g @fission-ai/openspec@latest
+npm ls -g @fission-ai/openspec
 ```
 
 **官方文档**: [https://github.com/fission-codes/openspec](https://github.com/fission-codes/openspec)
 
+
 ---
 
-### 🚀 使用流程
+### 🧭 旧版工作流（保留）
+
+> 适用于历史项目、团队仍在使用 `/openspec:*` 指令的场景。
 
 **核心流程**: Proposal → Apply → Archive
 
-#### 第1步: 创建变更提案 (Proposal)
+#### 第1步: 创建变更提案（Proposal）
 
 ```text
 /openspec:proposal 增加图片点赞功能。
-每个图片下方显示心形图标和点赞数,点击时有弹跳动画效果。
+每个图片下方显示心形图标和点赞数，点击时有弹跳动画效果。
 ```
 
-**作用**: 描述要做什么变更,AI 自动生成 Proposal 文档
+**作用**: 描述要做什么变更，AI 自动生成 Proposal 文档。
 
 ---
 
-#### 第2步: 查看和审核提案
+#### 第2步: 查看与审核提案
 
 ```bash
 # 查看所有提案
@@ -610,54 +640,150 @@ openspec show add-like-feature
 
 - 检查需求理解是否准确
 - 检查技术方案是否完整
-- 如需调整,直接编辑提案文件或重新生成
+- 如需调整，直接编辑提案文件或重新生成
 
 ---
 
-#### 第3步: 应用提案 (Apply)
+#### 第3步: 应用提案（Apply）
 
 ```text
 /openspec:apply add-like-feature
 ```
 
-**作用**: AI 基于审核通过的提案自动编码实现
+**作用**: AI 基于审核通过的提案自动编码实现。
 
 ---
 
 #### 第4步: 测试验证
 
-手动或自动测试变更是否符合预期
+手动或自动测试变更是否符合预期。
 
 ---
 
-#### 第5步: 归档提案 (Archive)
+#### 第5步: 归档提案（Archive）
 
 ```text
 /openspec:archive add-like-feature
 ```
 
-**作用**: 将变更合并到主 Spec,形成项目知识库
+**作用**: 将变更合并到主 Spec，形成项目知识库。
 
 ---
 
+### 🔁 新旧命令对照
+
+| 老版本 (`/openspec:*`) | 新版本 (`/opsx:*`) |
+|------------------------|-------------------|
+| `/openspec:proposal` | `/opsx:new` + `/opsx:continue` 或 `/opsx:ff` |
+| `/openspec:apply` | `/opsx:apply` |
+| `/openspec:archive` | `/opsx:archive` + `/opsx:sync` |
+
+---
+
+### 🚀 新版工作流（OPSX）
+
+OpenSpec 新版从旧的线性阶段流转为 **Action-based** 模式，核心流程为：
+
+**Explore → New → Build(continue/ff) → Apply → Verify → Archive → Sync**
+
+#### 第1步: 探索问题（可选）
+
+```text
+/opsx:explore 帮我分析图片点赞功能的实现方案和风险。
+```
+
+**作用**: 先调研和澄清需求，不创建文件。
+
+---
+
+#### 第2步: 创建变更
+
+```text
+/opsx:new add-like-feature
+```
+
+**作用**: 创建独立变更目录 `openspec/changes/add-like-feature/`。
+
+---
+
+#### 第3步: 构建文档（两种模式）
+
+```text
+# 步进模式（逐步生成，适合复杂需求）
+/opsx:continue
+
+# 快进模式（一次生成，适合简单需求）
+/opsx:ff
+```
+
+**作用**: 生成规划与任务产物；复杂需求建议使用 `continue` 逐步审阅。
+
+---
+
+#### 第4步: 执行实现
+
+```text
+/opsx:apply
+```
+
+**作用**: AI 按任务列表自动实现代码并更新相关文档。
+
+---
+
+#### 第5步: 自动审计
+
+```text
+/opsx:verify
+```
+
+**作用**: 从 CRITICAL/WARNING/SUGGESTION 维度检查实现与规格一致性。
+
+---
+
+#### 第6步: 归档与同步
+
+```text
+/opsx:archive
+/opsx:sync
+```
+
+**作用**: 先归档变更，再把局部修改同步到全局规格（Source of Truth）。
+
+---
+
+### 📘 常用命令速查（新版）
+
+| 命令 | 含义 | 典型场景 |
+|------|------|----------|
+| `/opsx:explore` | 方案探索与调研 | 需求不清、需先分析 |
+| `/opsx:new <id>` | 创建变更工作区 | 正式开始需求 |
+| `/opsx:continue` | 步进构建文档 | 高风险/复杂需求 |
+| `/opsx:ff` | 快进构建文档 | 常规小需求 |
+| `/opsx:apply` | 执行任务并编码 | 文档确认后实施 |
+| `/opsx:verify` | 自动质量审计 | 提交前质检 |
+| `/opsx:archive` | 归档当前变更 | 合并完成后 |
+| `/opsx:bulk-archive` | 批量归档变更 | 多个需求集中收尾 |
+| `/opsx:sync` | 同步到全局规格 | 确保下次任务基于最新真相 |
+| `/opsx:onboard` | 新手引导 | 首次使用新版 |
+
+
 ### ✅ 最佳实践
 
-| 适用场景              | 说明                                      |
-| --------------------- | ----------------------------------------- |
-| ✅ **增量迭代需求**   | 不熟悉的项目,快速新增功能                 |
-| ✅ **变更隔离管理**   | 每个 Proposal 独立,像 Git PR 一样清晰     |
-| ✅ **知识沉淀**       | 归档后自动形成项目文档                    |
-| ❌ **大批量新增功能** | 一次 Proposal 不要塞太多功能(建议 1-3 个) |
+1. **需求先探索**: 不确定需求时先用 `/opsx:explore`,避免直接开工返工
+2. **复杂需求走步进**: `continue` 便于每一步人工审核
+3. **提交前强制验证**: `verify` 作为 PR 前置检查
+4. **归档后立即同步**: `archive` 后执行 `sync`,保证规格库持续可用
+5. **版本固定**: 团队内可统一版本号,避免成员命令行为不一致
 
 ---
 
 ### ⚠️ 注意事项
 
-1. **粒度控制**: 单个 Proposal 建议包含 1-3 个紧密相关的功能,避免功能遗漏
-2. **工具化执行**: 命令行工具封装,执行稳定,换 Host 或模型影响较小
-3. **配合测试**: 每次 Apply 后建议运行测试,确保质量
-4. **Git 管理**: 每次 Apply 前建议提交 commit,方便回滚
-5. **推荐模型**: Claude 4.5 Sonnet (Proposal 质量最佳)
+1. **命令前缀变化**: 新版主要使用 `/opsx:*`,不要与 `/openspec:*` 混用
+2. **升级后先验收**: 升级或降级后都执行一次 `openspec --version` 与最小流程验证
+3. **变更粒度控制**: 每个 change id 聚焦单一业务目标,避免范围失控
+4. **配合测试**: `apply` 和 `verify` 后仍需执行项目测试
+5. **Git 管理**: 关键节点（new 前/verify 后/archive 前）建议提交 commit
 
 ---
 
