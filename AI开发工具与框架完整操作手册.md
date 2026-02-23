@@ -17,6 +17,7 @@
   - [C++ 安装](#c-安装)
   - [Java 安装](#java-安装)
 - [OpenCode 安装](#opencode-安装)
+- [AI Skills 安装教程](#ai-skills-安装教程)
 - [Spec-Kit 操作手册](#spec-kit-操作手册)
 - [OpenSpec 操作手册](#openspec-操作手册)
 - [BMAD 框架](#bmad-框架)
@@ -445,6 +446,141 @@ opencode help
 
 - [OpenCode 官方文档](https://opencode.ai/docs)
 - [OpenCode GitHub](https://github.com/opencode-ai/opencode)
+
+---
+
+## AI Skills 安装教程
+
+本章节补充 3 个常用技能/工具的安装方式：
+
+1. `ui-ux-pro-max-skill`
+2. `vercel-labs/agent-skills`
+3. `vercel-labs/agent-browser`
+
+### 1) ui-ux-pro-max-skill 安装
+
+仓库地址：[`nextlevelbuilder/ui-ux-pro-max-skill`](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill)
+
+**方式 A：使用官方 CLI（推荐）**
+
+```bash
+# 1. 安装 CLI
+npm install -g uipro-cli
+
+# 2. 进入你的项目目录
+cd /path/to/your/project
+
+# 3. 按你的 AI 工具安装
+uipro init --ai claude      # Claude Code
+uipro init --ai cursor      # Cursor
+uipro init --ai windsurf    # Windsurf
+uipro init --ai codex       # Codex
+uipro init --ai all         # 全部支持的助手
+```
+
+**方式 B：指定版本安装/升级**
+
+```bash
+# 查看可用版本
+uipro versions
+
+# 安装指定版本
+uipro init --version v1.0.0
+
+# 升级到最新
+uipro update
+```
+
+---
+
+### 2) vercel-labs/agent-skills 安装
+
+仓库地址：[`vercel-labs/agent-skills`](https://github.com/vercel-labs/agent-skills)
+
+**方式 A：安装整个技能仓库（推荐）**
+
+```bash
+npx skills add vercel-labs/agent-skills
+```
+
+**方式 B：先列出可安装技能再选择**
+
+```bash
+# 列出仓库内技能（不安装）
+npx skills add vercel-labs/agent-skills --list
+
+# 安装指定技能（示例）
+npx skills add vercel-labs/agent-skills --skill frontend-design
+```
+
+**方式 C：安装到指定助手/全局目录**
+
+```bash
+# 安装到指定助手（示例：claude-code + opencode）
+npx skills add vercel-labs/agent-skills -a claude-code -a opencode
+
+# 全局安装（跨项目可用）
+npx skills add vercel-labs/agent-skills -g
+```
+
+**常用检查命令**
+
+```bash
+# 查看已安装技能
+npx skills list
+
+# 检查更新
+npx skills check
+
+# 更新技能
+npx skills update
+```
+
+---
+
+### 3) vercel-labs/agent-browser 安装
+
+仓库地址：[`vercel-labs/agent-browser`](https://github.com/vercel-labs/agent-browser)
+
+`agent-browser` 是 AI Agent 的浏览器自动化 CLI，常用于端到端测试与网页操作。
+
+**方式 A：npm 安装（推荐）**
+
+```bash
+# 1. 全局安装 CLI
+npm install -g agent-browser
+
+# 2. 下载 Chromium
+agent-browser install
+```
+
+**Linux 额外依赖（如需要）**
+
+```bash
+agent-browser install --with-deps
+# 或
+npx playwright install-deps chromium
+```
+
+**快速验证**
+
+```bash
+agent-browser open example.com
+agent-browser snapshot
+agent-browser close
+```
+
+**可选：集成 Claude Code Skill**
+
+```bash
+# 从 node_modules 复制 skill（示例）
+cp -r node_modules/agent-browser/skills/agent-browser .claude/skills/
+
+# 或直接下载 SKILL.md
+mkdir -p .claude/skills/agent-browser
+curl -o .claude/skills/agent-browser/SKILL.md \
+  https://raw.githubusercontent.com/vercel-labs/agent-browser/main/skills/agent-browser/SKILL.md
+```
 
 ---
 
