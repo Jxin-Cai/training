@@ -1205,6 +1205,108 @@ sequenceDiagram
 - [BMAD 官方文档](https://github.com/bmad-code-org/BMAD-METHOD)
 - [BMAD 实战案例](https://github.com/Jxin-Cai/VB-Coding-Demo/tree/main/sdd/bmad)
 
+### V6 升级变更（V6 vs V4 对照）
+
+#### 架构层面变化
+
+| 对比项 | v4（旧版） | v6（当前版） |
+|--------|-----------|-------------|
+| 安装目录 | `.bmad-method`（点文件夹，部分 LLM 不可见） | `_bmad/`（下划线前缀，确保所有 LLM 可见） |
+| 核心定义 | `_bmad-core` 即 BMad Method 本身 | `_bmad/core/` 是通用框架，`_bmad/bmm/` 才是 BMad Method |
+| 配置方式 | 直接修改源文件 | 每个模块独立 `config.yaml`，通过 `.customize.yaml` 自定义 |
+| 文档管理 | 需预先选择分片/不分片模式 | 完全灵活，自动扫描识别 |
+| 命令命名 | 不统一，有嵌套目录 | 统一扁平化：`bmad-<module>-<workflow>.md` |
+| 安装器 | 各 IDE 独立实现 | 统一 `UnifiedInstaller`，所有 IDE 共用 |
+
+#### 命令变更对照
+
+v4 必须先加载代理，再通过代理菜单触发工作流。v6 支持直接通过斜杠命令运行：
+
+```
+# v4 方式：先加载代理，再触发
+/bmad-agent-bmm-pm    → 加载 PM 代理 → 输入 "PRD" 触发工作流
+
+# v6 方式：直接运行（也仍然支持 v4 方式）
+/bmad-bmm-create-prd  → 直接启动 PRD 创建工作流
+```
+
+v6 完整命令速查：
+
+| 阶段 | v6 命令 | 用途 |
+|------|---------|------|
+| 引导 | `/bmad-help` | 智能引导，查看状态和推荐 |
+| 分析 | `/bmad-bmm-create-product-brief` | 创建产品简报 |
+| 分析 | `/bmad-bmm-market-research` | 市场研究 |
+| 分析 | `/bmad-bmm-domain-research` | 领域研究 |
+| 分析 | `/bmad-bmm-technical-research` | 技术研究 |
+| 规划 | `/bmad-bmm-create-prd` | 创建 PRD |
+| 规划 | `/bmad-bmm-validate-prd` | 验证 PRD |
+| 规划 | `/bmad-bmm-create-ux-design` | 创建 UX 设计 |
+| 方案 | `/bmad-bmm-create-architecture` | 创建架构 |
+| 方案 | `/bmad-bmm-create-epics-and-stories` | 创建 Epics 和 Stories |
+| 方案 | `/bmad-bmm-check-implementation-readiness` | 实施准备检查 |
+| 实施 | `/bmad-bmm-sprint-planning` | Sprint 规划 |
+| 实施 | `/bmad-bmm-create-story` | 创建 Story |
+| 实施 | `/bmad-bmm-dev-story` | 开发 Story |
+| 实施 | `/bmad-bmm-code-review` | 代码审查 |
+| 实施 | `/bmad-bmm-correct-course` | 纠正路线 |
+| 实施 | `/bmad-bmm-retrospective` | 回顾 |
+| 快速 | `/bmad-bmm-quick-spec` | 快速生成技术规范 |
+| 快速 | `/bmad-bmm-quick-dev` | 快速实现 |
+| 工具 | `/bmad-bmm-generate-project-context` | 生成项目上下文 |
+| 工具 | `/bmad-bmm-document-project` | 生成项目文档 |
+| 协作 | `/bmad-brainstorming` | 头脑风暴（60+ 种技术） |
+| 协作 | `/bmad-party-mode` | 多代理协作讨论 |
+
+#### V6 新增模式与功能
+
+**（1）bmad-help 智能引导系统**
+
+v4 使用 `workflow-init` 和手动工作流跟踪。v6 引入 bmad-help，自动检测项目状态、自然语言交互、智能路由推荐工作流，每个工作流结束后自动调用告知下一步。
+
+```
+/bmad-help                          # 查看当前状态和推荐
+/bmad-help 我卡在 PRD 工作流了       # 获取针对性帮助
+```
+
+**（2）Quick Flow 快速开发轨道**
+
+新增轻量级开发路径，跳过完整 PRD/架构流程，适合小型变更（Bug 修复、小功能、重构）：
+
+```
+/bmad-bmm-quick-spec    # 生成技术规范
+/bmad-bmm-quick-dev     # 根据规范实现代码
+```
+
+内置范围检测：如果发现任务过大，自动建议升级到完整流程。
+
+**（3）模块化生态系统**
+
+v6 将框架拆分为独立模块，按需安装：
+
+| 模块 | 代码 | 用途 |
+|------|------|------|
+| BMad Method | `bmm` | 核心敏捷开发框架（34+ 工作流） |
+| BMad Builder | `bmb` | 创建自定义代理和工作流 |
+| Creative Intelligence Suite | `cis` | 创新、头脑风暴、设计思维 |
+| Game Dev Studio | `gds` | 游戏开发工作流 |
+| Test Architect | `tea` | 企业级测试策略和自动化 |
+
+**（4）Party Mode（多代理协作）**
+
+把多个 AI 代理拉进同一个对话讨论，适用于重大技术决策、头脑风暴、Sprint 回顾等场景：
+
+```
+/bmad-party-mode
+```
+
+**（5）其他改进**
+
+- Epics & Stories 创建移到架构设计之后，Stories 能直接反映架构决策
+- 新增跨文件引用验证器，扫描约 483 个引用检测断裂引用
+- Windows 兼容性改进（迁移到 @clack/prompts）
+- 支持非交互式安装（CI/CD）：`npx bmad-method install --modules bmm --tools claude-code --yes`
+
 ---
 
 ## Superpowers 框架
