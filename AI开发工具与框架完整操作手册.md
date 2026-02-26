@@ -419,17 +419,17 @@ curl -fsSL https://opencode.ai/install | bash
 
 ```bash
 # 使用 npm
-npm install -g @opencode/cli
+npm install -g opencode-ai
 
 # 使用 Bun（推荐，速度更快）
-bun install -g @opencode/cli
+bun install -g opencode-ai
 ```
 
 ### 初始化配置
 
 ```bash
 # 初始化 OpenCode
-opencode init
+opencode auth login
 
 # 根据提示配置 AI 模型订阅
 # 可选：Claude API、OpenAI API、Gemini API、GitHub Copilot
