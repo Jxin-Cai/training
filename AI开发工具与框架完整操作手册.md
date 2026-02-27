@@ -600,7 +600,12 @@ uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
 # 3. 初始化项目 (在项目目录下执行)
 specify init
 
-# 4. 验证安装
+# 4. 初始化并安装 AI Skills（可选，将命令模板转为 SKILL.md 安装到 agent 的 skills/ 目录）
+specify init my-project --ai claude --ai-skills
+# 或在当前目录
+specify init --here --ai gemini --ai-skills
+
+# 5. 验证安装
 specify check
 ```
 
@@ -610,7 +615,7 @@ specify check
 
 ### 🎯 使用流程
 
-**核心四步法**: Specify → Plan → Tasks → Implement
+**核心流程**: Specify → Clarify → Plan → Tasks → Implement
 
 #### 第1步: 设定项目规范 (Constitution)
 
@@ -618,7 +623,7 @@ specify check
 /speckit.constitution 使用 TypeScript,禁止 any 类型。组件必须单一职责。遵循《重构》中的坏味道定位原则。
 ```
 
-**作用**: 定义整个项目的编码规范、架构约束、团队约定(项目宪法)
+**作用**: 创建或更新项目治理原则和开发指南，指导所有后续开发(项目宪法)
 
 ---
 
@@ -634,11 +639,21 @@ specify check
 5. 支持暗黑模式
 ```
 
-**作用**: 描述"做什么"(需求层面),无需关心"怎么做"
+**作用**: 从自然语言功能描述创建功能规范。专注于"做什么"和"为什么"，不涉及技术栈。自动生成分支名称和编号，创建规范文件，并运行质量验证检查表。
 
 ---
 
-#### 第3步: 生成技术方案 (Plan) ⚠️ 关键检查点
+#### 第3步: 澄清需求 (Clarify)（推荐）
+
+```text
+/speckit.clarify 重点关注安全和性能需求
+```
+
+**作用**: 通过最多 5 个有针对性的澄清问题，减少规范中的模糊区域。支持结构化歧义扫描、推荐答案、多选选项和增量规范更新。
+
+---
+
+#### 第4步: 生成技术方案 (Plan) ⚠️ 关键检查点
 
 ```text
 /speckit.plan 使用 React + TypeScript 实现单页应用。
@@ -646,7 +661,15 @@ specify check
 UI 采用 CSS Grid 布局,支持响应式设计。
 ```
 
-**作用**: AI 生成详细的技术方案文档
+**作用**: 将规范转换为详细的技术实施计划，包含架构、数据模型和 API 合约
+
+**生成的工件**:
+
+- `plan.md` — 实施计划
+- `data-model.md` — 数据实体和关系
+- `contracts/` — API 规范和接口合约
+- `research.md` — 技术决策和研究
+- `quickstart.md` — 集成场景
 
 **⚠️ 必须人工审核**:
 
@@ -657,23 +680,81 @@ UI 采用 CSS Grid 布局,支持响应式设计。
 
 ---
 
-#### 第4步: 拆解任务 (Tasks)
+#### 第5步: 一致性分析 (Analyze)（可选）
+
+```text
+/speckit.analyze
+```
+
+**作用**: 跨工件只读分析，识别 `spec.md`、`plan.md` 和 `tasks.md` 之间的不一致、重复和覆盖率差距。按严重性分级：CRITICAL、HIGH、MEDIUM、LOW。
+
+---
+
+#### 第6步: 质量检查表 (Checklist)（可选）
+
+```text
+/speckit.checklist
+```
+
+**作用**: 生成自定义质量检查表，验证需求本身的质量、清晰度和完整性。可生成的检查表类型：UX 需求质量、API 需求质量、安全需求质量、性能需求质量等。
+
+---
+
+#### 第7步: 拆解任务 (Tasks)
 
 ```text
 /speckit.tasks
 ```
 
-**作用**: AI 将技术方案拆解为可执行的任务清单
+**作用**: 从实施计划生成可操作的、依赖排序的任务列表，按用户故事组织
+
+**任务格式示例**:
+
+```
+- [ ] T001 创建项目结构
+- [ ] T005 [P] 在 src/middleware/auth.py 中实现认证中间件
+- [ ] T012 [P] [US1] 在 src/models/user.py 中创建 User 模型
+```
+
+其中 `[P]` 表示可并行执行，`[US1]` 表示所属用户故事。
 
 ---
 
-#### 第5步: 开始实现 (Implement)
+#### 第8步: 开始实现 (Implement)
 
 ```text
 /speckit.implement
 ```
 
-**作用**: AI 基于任务清单逐个编码实现
+**作用**: 系统地执行 `tasks.md` 中定义的所有任务，按阶段推进：设置 → 基础 → 用户故事 → 完善。支持检查表状态验证、依赖关系管理、TDD 方法和进度跟踪。
+
+---
+
+#### 第9步: 转换为 GitHub Issues (TasksToIssues)（可选）
+
+```text
+/speckit.taskstoissues
+```
+
+**作用**: 将任务列表转换为 GitHub Issues，需要 GitHub MCP 服务器工具支持。
+
+---
+
+#### 完整步骤速查
+
+```
+步骤 1:  specify init my-project --ai claude    ← 终端中初始化项目
+步骤 2:  /speckit.constitution                   ← AI 对话中建立项目原则
+步骤 3:  /speckit.specify                        ← 描述要构建的功能
+步骤 4:  /speckit.clarify                        ← （推荐）澄清模糊需求
+步骤 5:  /speckit.plan                           ← 生成技术实施计划
+步骤 6:  /speckit.analyze                        ← （可选）检查一致性
+步骤 7:  /speckit.checklist                      ← （可选）生成质量检查表
+步骤 8:  /speckit.tasks                          ← 生成任务列表
+步骤 9:  /speckit.implement                      ← 执行实施
+```
+
+核心流程为 `specify → clarify → plan → tasks → implement`，其余为可选的质量保障步骤。
 
 ---
 
