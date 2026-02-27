@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from models import Category, Article, User
 from passlib.context import CryptContext
 from datetime import datetime
@@ -24,19 +25,27 @@ def get_category(db: Session, category_id: int):
 
 
 def create_category(db: Session, name: str):
-    category = Category(name=name)
-    db.add(category)
-    db.commit()
-    db.refresh(category)
-    return category
+    try:
+        category = Category(name=name)
+        db.add(category)
+        db.commit()
+        db.refresh(category)
+        return category
+    except IntegrityError:
+        db.rollback()
+        raise ValueError(f"Category '{name}' already exists")
 
 
 def update_category(db: Session, category_id: int, name: str):
     category = get_category(db, category_id)
     if category:
-        category.name = name
-        db.commit()
-        db.refresh(category)
+        try:
+            category.name = name
+            db.commit()
+            db.refresh(category)
+        except IntegrityError:
+            db.rollback()
+            raise ValueError(f"Category '{name}' already exists")
     return category
 
 
@@ -98,12 +107,16 @@ def create_article(
 def update_article(db: Session, article_id: int, **kwargs):
     article = get_article(db, article_id)
     if article:
-        for key, value in kwargs.items():
-            if value is not None and hasattr(article, key):
-                setattr(article, key, value)
-        article.updated_at = datetime.utcnow()
-        db.commit()
-        db.refresh(article)
+        try:
+            for key, value in kwargs.items():
+                if value is not None and hasattr(article, key):
+                    setattr(article, key, value)
+            article.updated_at = datetime.utcnow()
+            db.commit()
+            db.refresh(article)
+        except Exception:
+            db.rollback()
+            raise
     return article
 
 
@@ -121,8 +134,12 @@ def get_user_by_username(db: Session, username: str):
 
 
 def create_user(db: Session, username: str, password: str):
-    user = User(username=username, password_hash=get_password_hash(password))
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+    try:
+        user = User(username=username, password_hash=get_password_hash(password))
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+    except IntegrityError:
+        db.rollback()
+        raise ValueError(f"User '{username}' already exists")
