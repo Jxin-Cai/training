@@ -1,0 +1,34 @@
+# Backend
+backend/.venv/
+backend/__pycache__/
+backend/.ruff_cache/
+backend/cms.db
+backend/*.db
+.env
+
+# Frontend
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
