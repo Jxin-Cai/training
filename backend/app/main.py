@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+import markdown
 from app.database import get_db, SessionLocal
 from app.crud import (
     get_user_by_username,
@@ -116,11 +117,12 @@ def read_article(article_id: int, db: Session = Depends(get_db)):
 def create_article_endpoint(
     article: schemas.ArticleCreate, db: Session = Depends(get_db)
 ):
+    content_html = markdown.markdown(article.content_md)
     return create_article(
         db,
         title=article.title,
         content_md=article.content_md,
-        content_html=article.content_md,
+        content_html=content_html,
         category_id=article.category_id,
         status=article.status,
     )
@@ -132,7 +134,7 @@ def update_article_endpoint(
 ):
     update_data = article.model_dump(exclude_unset=True)
     if "content_md" in update_data:
-        update_data["content_html"] = update_data["content_md"]
+        update_data["content_html"] = markdown.markdown(update_data["content_md"])
     return update_article(db, article_id, **update_data)
 
 
