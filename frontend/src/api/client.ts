@@ -1,13 +1,33 @@
 const API_BASE = '/api'
 
+function getToken(): string | null {
+  return localStorage.getItem('token')
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const token = getToken()
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...headers,
       ...options.headers,
     },
   })
+
+  if (response.status === 401) {
+    localStorage.removeItem('token')
+    window.location.href = '/admin'
+    throw new Error('Unauthorized')
+  }
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Request failed' }))
     throw new Error(error.detail)
