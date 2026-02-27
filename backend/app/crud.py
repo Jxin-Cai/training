@@ -1,18 +1,18 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from models import Category, Article, User
-from passlib.context import CryptContext
+from app.models import Category, Article, User
+import bcrypt
 from datetime import datetime
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(
+        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
+    )
 
 
 # Category CRUD
