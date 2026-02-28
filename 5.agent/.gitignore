@@ -1,0 +1,10 @@
+# 本地环境与密钥
+.env
+.env.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
