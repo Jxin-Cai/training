@@ -1,0 +1,6 @@
+langchain>=0.3.0
+langchain-openrouter>=0.0.2
+langchain-openai>=0.2.0
+langchain-anthropic>=0.3.0
+langchain-core>=0.3.0
+python-dotenv>=1.0.0
